@@ -112,40 +112,6 @@ def dfs(maze, start, end):
                     stack.append((ndx, ndy, path + [(x, y)]))
     return []
 
-def is_visible(maze, enemy_pos, player_pos):
-    # Cek apakah player terlihat oleh musuh (tanpa halangan dinding)
-    x1, y1 = enemy_pos
-    x2, y2 = player_pos
-    
-    # Bresenham's line algorithm untuk mengecek LOS
-    dx = abs(x2 - x1)
-    dy = abs(y2 - y1)
-    x, y = x1, y1
-    sx = -1 if x1 > x2 else 1
-    sy = -1 if y1 > y2 else 1
-    
-    if dx > dy:
-        err = dx / 2.0
-        while x != x2:
-            if maze[x][y] == 1:  # Terhalang dinding
-                return False
-            err -= dy
-            if err < 0:
-                y += sy
-                err += dx
-            x += sx
-    else:
-        err = dy / 2.0
-        while y != y2:
-            if maze[x][y] == 1:  # Terhalang dinding
-                return False
-            err -= dx
-            if err < 0:
-                x += sx
-                err += dy
-            y += sy
-    
-    return True
 
 def hybrid_ai(maze, enemy_pos, player_pos, game_time):
     global current_algorithm, last_switch
@@ -172,20 +138,6 @@ def hybrid_ai(maze, enemy_pos, player_pos, game_time):
         return path[1]
     return enemy_pos
 
-# def hybrid_ai_LOS(maze, enemy_pos, player_pos, vision_range=5):
-#     # AI Hybrid: DFS saat jauh, BFS saat dekat/lihat player
-#     distance = math.sqrt((enemy_pos[0] - player_pos[0])**2 + (enemy_pos[1] - player_pos[1])**2)
-    
-#     # Jika player dalam jangkauan penglihatan dan terlihat
-#     if distance < vision_range and is_visible(maze, enemy_pos, player_pos):
-#         path = bfs(maze, enemy_pos, player_pos)  # Mode agresif (BFS)
-#     else:
-#         path = dfs(maze, enemy_pos, player_pos)  # Mode patroli (DFS)
-    
-#     if path and len(path) > 1:
-#         return path[1]  # Langkah berikutnya
-#     else:
-#         return enemy_pos  # Diam jika tidak ada jalan
 
 # Fungsi untuk menggambar labirin
 def draw_maze():
@@ -229,13 +181,7 @@ while running:
     
     enemy_pos = hybrid_ai(maze, (enemy_pos[0], enemy_pos[1]), (player_pos[0], player_pos[1]), game_time)
     
-    # Gerakan musuh setiap 0.5 detik
-    # Jika menggunakan AI dengan penglihatan    
-    # if current_time - last_enemy_move > 0.5:
-        # enemy_path = hybrid_ai_LOS(maze, (enemy_pos[0], enemy_pos[1]), (player_pos[0], player_pos[1]))
-        # if enemy_path:
-        #     enemy_pos = enemy_path
-        #last_enemy_move = current_time
+    
     
     # Cek jika musuh menangkap player
     if enemy_pos[0] == player_pos[0] and enemy_pos[1] == player_pos[1]:
