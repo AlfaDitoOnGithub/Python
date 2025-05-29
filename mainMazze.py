@@ -176,12 +176,11 @@ while running:
             if event.key == pygame.K_RIGHT and player_pos[1] < COLS-1 and maze[player_pos[0]][player_pos[1]+1] == 0:
                 player_pos[1] += 1
     
-    # Gerakan musuh menggunakan BFS setiap 0.5 detik
+    # Gerakan musuh setiap 0.5 detik
     if current_time - last_enemy_move > 0.5:
-        path = bfs(maze, (enemy_pos[0], enemy_pos[1]), (player_pos[0], player_pos[1]))
-        if len(path) > 1:  # Jika ada jalur
-            next_pos = path[1]  # Langkah berikutnya
-            enemy_pos[0], enemy_pos[1] = next_pos[0], next_pos[1]
+        enemy_path = hybrid_ai(maze, (enemy_pos[0], enemy_pos[1]), (player_pos[0], player_pos[1]))
+        if enemy_path:
+            enemy_pos = enemy_path
         last_enemy_move = current_time
     
     # Cek jika musuh menangkap player
