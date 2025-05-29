@@ -2,6 +2,7 @@ import pygame
 import sys
 from collections import deque
 import time
+import math
 
 # Inisialisasi Pygame
 pygame.init()
@@ -72,6 +73,72 @@ def bfs(maze, start, end):
                 queue.appendleft((nx, ny, path + [(x, y)]))
     
     return []  # Jika tidak ditemukan jalur
+
+# Fungsi DFS untuk Patroli 
+def dfs(maze, start, end):
+    stack = [(start[0], start[1], [])]
+    visited = set()
+    
+    while stack:
+        x, y, path = stack.pop()
+        if (x, y) == (end[0], end[1]):
+            return path + [(x, y)]
+        if (x, y) not in visited:
+            visited.add((x, y))
+            for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < ROWS and 0 <= ny < COLS and maze[nx][ny] == 0:
+                    stack.append((nx, ny, path + [(x, y)]))
+    return []
+
+def is_visible(maze, enemy_pos, player_pos):
+    # Cek apakah player terlihat oleh musuh (tanpa halangan dinding)
+    x1, y1 = enemy_pos
+    x2, y2 = player_pos
+    
+    # Bresenham's line algorithm untuk mengecek LOS
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    x, y = x1, y1
+    sx = -1 if x1 > x2 else 1
+    sy = -1 if y1 > y2 else 1
+    
+    if dx > dy:
+        err = dx / 2.0
+        while x != x2:
+            if maze[x][y] == 1:  # Terhalang dinding
+                return False
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+            x += sx
+    else:
+        err = dy / 2.0
+        while y != y2:
+            if maze[x][y] == 1:  # Terhalang dinding
+                return False
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+            y += sy
+    
+    return True
+
+def hybrid_ai(maze, enemy_pos, player_pos, vision_range=5):
+    # AI Hybrid: DFS saat jauh, BFS saat dekat/lihat player
+    distance = math.sqrt((enemy_pos[0] - player_pos[0])**2 + (enemy_pos[1] - player_pos[1])**2)
+    
+    # Jika player dalam jangkauan penglihatan dan terlihat
+    if distance < vision_range and is_visible(maze, enemy_pos, player_pos):
+        path = bfs(maze, enemy_pos, player_pos)  # Mode agresif (BFS)
+    else:
+        path = dfs(maze, enemy_pos, player_pos)  # Mode patroli (DFS)
+    
+    if path and len(path) > 1:
+        return path[1]  # Langkah berikutnya
+    return enemy_pos  # Diam jika tidak ada jalan
 
 # Fungsi untuk menggambar labirin
 def draw_maze():
