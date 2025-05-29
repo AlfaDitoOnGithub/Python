@@ -8,7 +8,7 @@ import math
 pygame.init()
 
 # Konstanta
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 400, 400
 GRID_SIZE = 20
 ROWS, COLS = HEIGHT // GRID_SIZE, WIDTH // GRID_SIZE
 WHITE = (255, 255, 255)
@@ -27,7 +27,7 @@ clock = pygame.time.Clock()
 maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
     [1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
     [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
     [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
@@ -40,12 +40,16 @@ maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
     [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
+
+# Validasi ukuran maze
+assert len(maze) == ROWS, f"Jumlah baris maze ({len(maze)}) tidak sesuai dengan ROWS ({ROWS})"
+assert all(len(row) == COLS for row in maze), f"Jumlah kolom maze tidak konsisten atau tidak sesuai dengan COLS ({COLS})"
 
 # Posisi awal player dan musuh
 player_pos = [1, 1]
@@ -67,10 +71,10 @@ def bfs(maze, start, end):
             return path + [(x, y)]
         
         for dx, dy in directions:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < ROWS and 0 <= ny < COLS and maze[nx][ny] == 0 and (nx, ny) not in visited:
-                visited.add((nx, ny))
-                queue.appendleft((nx, ny, path + [(x, y)]))
+            bx, by = x + dx, y + dy
+            if 0 <= bx < ROWS and 0 <= by < COLS and maze[bx][by] == 0 and (bx, by) not in visited:
+                visited.add((bx, by))
+                queue.appendleft((bx, by, path + [(x, y)]))
     
     return []  # Jika tidak ditemukan jalur
 
@@ -86,9 +90,10 @@ def dfs(maze, start, end):
         if (x, y) not in visited:
             visited.add((x, y))
             for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < ROWS and 0 <= ny < COLS and maze[nx][ny] == 0:
-                    stack.append((nx, ny, path + [(x, y)]))
+                ndx, ndy = x + dx, y + dy
+                #print(f"nx: {ndx}, ny: {ndy}, maze shape: {len(maze)}x{len(maze[0])}")
+                if 0 <= ndx < len(maze) and 0 <= ndy < len(maze[0]) and maze[ndx][ndy] == 0:
+                    stack.append((ndx, ndy, path + [(x, y)]))
     return []
 
 def is_visible(maze, enemy_pos, player_pos):
@@ -138,7 +143,8 @@ def hybrid_ai(maze, enemy_pos, player_pos, vision_range=5):
     
     if path and len(path) > 1:
         return path[1]  # Langkah berikutnya
-    return enemy_pos  # Diam jika tidak ada jalan
+    else:
+        return enemy_pos  # Diam jika tidak ada jalan
 
 # Fungsi untuk menggambar labirin
 def draw_maze():
